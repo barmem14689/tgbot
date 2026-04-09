@@ -7,7 +7,7 @@ from datetime import UTC, datetime, timedelta
 
 from aiogram import Bot, Dispatcher, F
 from aiogram.exceptions import TelegramNetworkError
-from aiogram.filters import Command, CommandStart
+from aiogram.filters import Command, CommandStart, or_f
 from aiogram.types import CallbackQuery, Message
 
 from bot.config import Config
@@ -24,6 +24,12 @@ from bot.texts import (
 )
 from bot.xui_client import XUIClient
 
+# Срабатывает и для /help, и для /help@BotName (в т.ч. если апдейт приходит как business_message).
+HELP_FILTER = or_f(
+    Command("help", ignore_case=True, ignore_mention=True),
+    F.text.regexp(r"(?i)^/help(?:@\w+)?(?:\s|$)"),
+)
+
 
 class VPNPaymentBot:
     def __init__(self, config: Config, repository: Repository, xui: XUIClient) -> None:
@@ -36,7 +42,8 @@ class VPNPaymentBot:
 
     def _register_handlers(self) -> None:
         self.dp.message.register(self.on_start, CommandStart())
-        self.dp.message.register(self.on_help, Command("help"))
+        self.dp.message.register(self.on_help, HELP_FILTER)
+        self.dp.business_message.register(self.on_help, HELP_FILTER)
         self.dp.callback_query.register(self.on_trial_request, F.data == "trial:start")
         self.dp.callback_query.register(self.on_choose_period, F.data.startswith("buy:"))
         self.dp.message.register(self.on_photo, F.photo)
