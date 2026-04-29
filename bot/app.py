@@ -207,7 +207,8 @@ class VPNPaymentBot:
             (
                 "Пробный период на 3 дня активирован.\n"
                 f"Ваш ключ:\n<code>{key_text}</code>\n\n"
-                f"Пробный доступ до: {expires_at.strftime('%Y-%m-%d %H:%M UTC')}"
+                f"Пробный доступ до: {expires_at.strftime('%Y-%m-%d %H:%M UTC')}\n\n"
+                "Для получения инструкций по включению нажмите /help"
             ),
             parse_mode="HTML",
         )
@@ -287,7 +288,8 @@ class VPNPaymentBot:
                 (
                     "Платеж подтвержден.\n"
                     f"Ваш ключ:\n<code>{key_text}</code>\n\n"
-                    f"Подписка активна до: {expires_at.strftime('%Y-%m-%d %H:%M UTC')}"
+                    f"Подписка активна до: {expires_at.strftime('%Y-%m-%d %H:%M UTC')}\n\n"
+                    "Для получения инструкций по включению нажмите /help"
                 ),
                 parse_mode="HTML",
             )
