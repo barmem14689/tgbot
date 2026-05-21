@@ -37,7 +37,6 @@ def _as_utc_aware(dt: datetime | None) -> datetime | None:
     return dt.astimezone(UTC)
 
 
-# Срабатывает и для /help, и для /help@BotName (в т.ч. если апдейт приходит как business_message).
 HELP_FILTER = or_f(
     Command("help", ignore_case=True, ignore_mention=True),
     F.text.regexp(r"(?i)^/help(?:@\w+)?(?:\s|$)"),
@@ -323,9 +322,6 @@ class VPNPaymentBot:
 
         reuse_old_client = bool(existing_uuid and expires_at_current and now <= grace_border)
 
-        # Без EXTEND_PAID_FROM_CURRENT_END: срок всегда "N дней с момента подтверждения оплаты".
-        # Со старым поведением (true): если подписка ещё активна, N дней добавляются к текущей дате окончания
-        # (остаток + оплата — из‑за этого могло получаться ~63 дня при покупке "30 дней").
         start_from = now
         if (
             self.config.extend_paid_from_current_end
@@ -428,7 +424,7 @@ class VPNPaymentBot:
             try:
                 await self.bot.send_message(user.tg_user_id, warning, parse_mode="HTML")
                 await self.repo.mark_sub_expiry_warned_for(user.tg_user_id, expires_at)
-            except Exception:  # noqa: BLE001
+            except Exception:  
                 logging.exception("Could not send expiry warning to user %s", user.tg_user_id)
 
     async def _sync_xui_expiry_if_exists(self, tg_user_id: int, expires_at: datetime) -> None:
@@ -438,14 +434,14 @@ class VPNPaymentBot:
         email = user.xui_email or f"tg_{tg_user_id}"
         try:
             await self.xui.update_client_expiry(user.xui_uuid, email, int(expires_at.timestamp() * 1000))
-        except Exception:  # noqa: BLE001
+        except Exception:  
             logging.exception("Could not sync referral bonus expiry to X-UI for user %s", tg_user_id)
 
     async def auto_approve_payments_loop(self) -> None:
         while True:
             try:
                 await self.auto_approve_payments_once()
-            except Exception:  # noqa: BLE001
+            except Exception: 
                 logging.exception("Auto-approve loop iteration failed")
             await asyncio.sleep(60)
 
@@ -510,7 +506,7 @@ class VPNPaymentBot:
         while True:
             try:
                 await self.cleanup_expired_once()
-            except Exception:  # noqa: BLE001
+            except Exception: 
                 logging.exception("Cleanup loop iteration failed")
             await asyncio.sleep(self.config.cleanup_interval_minutes * 60)
 
@@ -524,7 +520,7 @@ class VPNPaymentBot:
                 continue
             try:
                 await self.xui.delete_client(user.xui_uuid)
-            except Exception:  # noqa: BLE001
+            except Exception: 
                 logging.exception("Could not delete expired client %s", user.xui_uuid)
                 continue
             await self.repo.clear_user_subscription(user.tg_user_id)
